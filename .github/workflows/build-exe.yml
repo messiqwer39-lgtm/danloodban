@@ -1,0 +1,64 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Generate Prisma client
+        run: bunx prisma generate
+
+      - name: Generate sample videos (ffmpeg)
+        shell: pwsh
+        run: |
+          mkdir storage/samples -Force
+          ffmpeg -y -loglevel error -f lavfi -i "testsrc=size=640x360:rate=20:duration=60" -f lavfi -i "sine=frequency=440:duration=60" -c:v libx264 -preset ultrafast -crf 32 -pix_fmt yuv420p -movflags +faststart -c:a aac -b:a 64k -shortest storage/samples/sample-1.mp4
+          ffmpeg -y -loglevel error -f lavfi -i "smptebars=size=640x360:rate=20:duration=60" -f lavfi -i "sine=frequency=550:duration=60" -c:v libx264 -preset ultrafast -crf 32 -pix_fmt yuv420p -movflags +faststart -c:a aac -b:a 64k -shortest storage/samples/sample-2.mp4
+          ffmpeg -y -loglevel error -f lavfi -i "testsrc=size=480x270:rate=15:duration=90" -f lavfi -i "sine=frequency=330:duration=90" -c:v libx264 -preset ultrafast -crf 32 -pix_fmt yuv420p -movflags +faststart -c:a aac -b:a 64k -shortest storage/samples/sample-3.mp4
+
+      - name: Build Next.js (standalone)
+        run: bun run build
+        env:
+          DATABASE_URL: file:./db/build.db
+
+      - name: Install electron dependencies
+        run: npm install
+        working-directory: electron
+
+      - name: Build Windows EXE
+        run: npx electron-builder --win nsis portable
+        working-directory: electron
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: electron/release/*.exe
+          generate_release_notes: true
+
+      - name: Upload artifact (branch builds)
+        if: startsWith(github.ref, 'refs/heads/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: DanloodBan-Windows
+          path: electron/release/*.exe
+          if-no-files-found: error

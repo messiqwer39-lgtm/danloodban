@@ -1,2 +1,37 @@
-skills/
-node_modules/
+# dependencies
+node_modules
+electron/node_modules
+
+# next.js
+/.next/
+/out/
+
+# production & electron output
+/build
+electron/release
+
+# storage & database
+/storage/
+/db/*.db
+*.db-journal
+
+# env files
+.env*
+
+# misc
+.DS_Store
+*.log
+dev.log
+server.log
+npm-debug.log*
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# project specific
+/public/downloads
+local-*
+.claude
+.z-ai-config
+/skills/

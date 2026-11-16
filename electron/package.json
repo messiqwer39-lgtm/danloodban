@@ -1,0 +1,47 @@
+{
+  "name": "danloodban-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "dist": "electron-builder --win nsis portable"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "ir.danloodban.app",
+    "productName": "DanloodBan",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../.next/standalone",
+        "to": "app-server"
+      },
+      {
+        "from": "../storage/samples",
+        "to": "samples"
+      }
+    ],
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "DanloodBan-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "DanloodBan-Portable-${version}.${ext}"
+    }
+  }
+}
