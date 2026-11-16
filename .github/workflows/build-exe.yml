@@ -25,6 +25,9 @@ jobs:
       - name: Generate Prisma client
         run: bunx prisma generate
 
+      - name: Install ffmpeg (Chocolatey)
+        run: choco install ffmpeg -y --no-progress
+
       - name: Generate sample videos (ffmpeg)
         shell: pwsh
         run: |
